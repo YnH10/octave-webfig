@@ -1,0 +1,251 @@
+.owf-root {
+  --owf-fg: var(--vscode-foreground, var(--jp-ui-font-color1, currentColor));
+  --owf-muted: var(--vscode-descriptionForeground, var(--jp-ui-font-color2, currentColor));
+  --owf-border: var(--vscode-panel-border, var(--jp-border-color2, rgba(128, 128, 128, 0.35)));
+  --owf-btn-hover: var(--vscode-toolbar-hoverBackground, rgba(128, 128, 128, 0.2));
+  --owf-accent: var(--vscode-focusBorder, #0a84ff);
+  display: inline-flex;
+  flex-direction: column;
+  max-width: 100%;
+  font-family: var(--vscode-font-family, system-ui, -apple-system, "Segoe UI", sans-serif);
+  font-size: 12px;
+  user-select: none;
+}
+
+.owf-bar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 24px;
+  padding: 0 2px 2px;
+}
+
+.owf-title {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 45%;
+}
+
+.owf-busy {
+  width: 7px;
+  height: 7px;
+  margin: 0 4px;
+  border-radius: 50%;
+  background: transparent;
+  transition: background 0.1s;
+}
+.owf-busy.on {
+  background: var(--owf-accent);
+  animation: owf-pulse 0.8s ease-in-out infinite alternate;
+}
+@keyframes owf-pulse {
+  from { opacity: 0.35; }
+  to { opacity: 1; }
+}
+
+.owf-readout {
+  color: var(--owf-muted);
+  opacity: 0.75;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-left: 4px;
+}
+
+.owf-spacer {
+  flex: 1;
+}
+
+.owf-btn {
+  min-width: 24px;
+  height: 22px;
+  padding: 0 5px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+}
+.owf-btn:hover {
+  background: var(--owf-btn-hover);
+}
+.owf-btn.on {
+  border-color: var(--owf-accent);
+  background: var(--owf-btn-hover);
+}
+.owf-btn.alert {
+  color: #e5484d;
+}
+
+.owf-stage {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--owf-border);
+  box-sizing: content-box;
+}
+
+.owf-canvas {
+  display: block;
+  touch-action: none;
+}
+
+.owf-layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  pointer-events: none;
+}
+
+.owf-tip {
+  position: absolute;
+  display: none;
+  padding: 3px 6px;
+  border-radius: 3px;
+  background: rgba(30, 30, 30, 0.88);
+  color: #fff;
+  font: 11px/1.35 ui-monospace, Consolas, monospace;
+  white-space: pre;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.owf-band {
+  position: absolute;
+  display: none;
+  border: 1px dashed #0a84ff;
+  background: rgba(10, 132, 255, 0.12);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.owf-closed {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(127, 127, 127, 0.35);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  z-index: 4;
+}
+
+.owf-console {
+  margin: 4px 0 0;
+  max-height: 160px;
+  overflow: auto;
+  padding: 6px 8px;
+  border: 1px solid var(--owf-border);
+  font: 12px/1.4 var(--vscode-editor-font-family, ui-monospace, Consolas, monospace);
+  white-space: pre-wrap;
+  user-select: text;
+}
+.owf-console .owf-err {
+  color: #e5484d;
+}
+
+/* ---------------------------------------------------------------- uicontrol */
+.owf-ctl {
+  position: absolute;
+  box-sizing: border-box;
+  pointer-events: auto;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  color: #000;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+.owf-ctl.owf-inactive {
+  pointer-events: none;
+}
+.owf-text {
+  white-space: pre-wrap;
+  justify-content: center;
+  line-height: 1.15;
+  background: transparent;
+}
+.owf-frame {
+  border: 1px solid rgba(0, 0, 0, 0.35);
+}
+.owf-ctl button {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0 4px;
+  border: 1px solid #adadad;
+  border-radius: 2px;
+  background: #e1e1e1;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.owf-ctl button:hover:not(:disabled) {
+  border-color: #0078d7;
+  filter: brightness(1.05);
+}
+.owf-ctl button:active:not(:disabled),
+.owf-ctl button.pressed {
+  filter: brightness(0.85);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+.owf-ctl input[type="range"] {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  accent-color: #0078d7;
+  cursor: pointer;
+}
+.owf-ctl input[type="range"].vertical {
+  writing-mode: vertical-lr;
+  direction: rtl;
+}
+.owf-ctl label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.owf-ctl label input {
+  margin: 0 0 0 1px;
+}
+.owf-ctl input[type="text"],
+.owf-ctl textarea,
+.owf-ctl select {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  box-sizing: border-box;
+  border: 1px solid #7a7a7a;
+  border-radius: 0;
+  background: #fff;
+  color: #000;
+  font: inherit;
+  padding: 0 3px;
+}
+.owf-ctl textarea {
+  resize: none;
+  padding: 2px 3px;
+}
+.owf-ctl select[size],
+.owf-ctl select[multiple] {
+  padding: 0;
+}
+.owf-ctl :disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.is-closed .owf-ctl {
+  pointer-events: none;
+}

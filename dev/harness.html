@@ -1,0 +1,81 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>webfig harness</title>
+<link rel="stylesheet" href="../octave_webfig/static/webfig.css">
+<style>
+  body { margin: 16px; background: #fff; font-family: sans-serif; }
+  body.dark { background: #1e1e1e; color: #ccc; }
+  .cell { margin-bottom: 24px; width: 640px; }
+</style>
+</head>
+<body>
+<div id="out"></div>
+<script type="module">
+import widget from "../octave_webfig/static/webfig.js";
+
+class MockModel {
+  constructor(state, server) { this.state = state; this.cbs = {}; this.server = server; }
+  get(k) { return this.state[k]; }
+  set(k, v) { this.state[k] = v; (this.cbs["change:" + k] || []).forEach((f) => f()); }
+  on(e, f) { (this.cbs[e] ||= []).push(f); }
+  off(e, f) { this.cbs[e] = (this.cbs[e] || []).filter((g) => g !== f); }
+  send(msg) { window.sent.push(msg); if (this.server) setTimeout(() => this.server(this, msg), 25); }
+  emit(msg) { (this.cbs["msg:custom"] || []).forEach((f) => f(msg)); }
+}
+window.sent = [];
+window.models = {};
+
+// 로봇팔 서버 흉내: 슬라이더 → 팔 다시 계산
+function robotServer(model, msg) {
+  const fig = JSON.parse(model.get("fig_json"));
+  if (msg.type === "event") {
+    const ctl = findId(fig, msg.obj);
+    if (ctl && msg.kind === "value") ctl.value = msg.value;
+    const sl = fig.children.filter((c) => c.style === "slider");
+    const t1 = sl[0].value, t2 = sl[1].value;
+    const x1 = Math.cos(t1), y1 = Math.sin(t1);
+    const x2 = x1 + 0.8 * Math.cos(t1 + t2), y2 = y1 + 0.8 * Math.sin(t1 + t2);
+    const ax = fig.children[0];
+    ax.children[0].x = [0, x1, x2]; ax.children[0].y = [0, y1, y2];
+    ax.children[1].x = x2; ax.children[1].y = y2;
+    const texts = fig.children.filter((c) => c.style === "text");
+    texts[1].string = [(t1 * 180 / Math.PI).toFixed(1)];
+    texts[3].string = [(t2 * 180 / Math.PI).toFixed(1)];
+    texts[4].string = [`End effector: (${x2.toFixed(3)}, ${y2.toFixed(3)})`];
+    model.set("fig_json", JSON.stringify(fig));
+    model.emit({ type: "ack", seq: msg.seq, out: "", error: false });
+  } else if (msg.type === "close") {
+    model.set("closed", true);
+    model.emit({ type: "ack", seq: msg.seq, out: "", error: false });
+  }
+}
+function echoServer(model, msg) {
+  const out = msg.type === "event" ? `callback ${msg.kind} ${JSON.stringify(msg.value)}` : "";
+  const err = msg.kind === "press";
+  model.emit({ type: "ack", seq: msg.seq, out: err ? "error: Reset 콜백에서 정의되지 않은 변수 'k'" : out, error: err });
+}
+function findId(node, id) {
+  if (!node || typeof node !== "object") return null;
+  if (node.id === id) return node;
+  for (const c of [].concat(node.children || [])) { const r = findId(c, id); if (r) return r; }
+  return null;
+}
+
+const names = new URLSearchParams(location.search).get("s")?.split(",") || ["robot", "surf", "subplot", "controls", "image"];
+if (new URLSearchParams(location.search).get("dark")) document.body.classList.add("dark");
+for (const n of names) {
+  const txt = await (await fetch(`samples/${n}.json`)).text();
+  const cell = document.createElement("div");
+  cell.className = "cell";
+  cell.id = "cell-" + n;
+  document.getElementById("out").appendChild(cell);
+  const model = new MockModel({ fig_json: txt, closed: false, live_slider: true, fig_id: n }, n === "robot" ? robotServer : echoServer);
+  window.models[n] = model;
+  widget.render({ model, el: cell });
+}
+window.ready = true;
+</script>
+</body>
+</html>
